@@ -3,7 +3,7 @@ import os
 import telebot
 
 # ---------- Конфигурация ----------
-TOKEN = "BOT_TOKEN"
+TOKEN = os.getenv("BOT_TOKEN")
 JSON_FILE = "klubklubromance.json"
 ACHIEVEMENTS_FILE = "achievements.json"
 
@@ -591,4 +591,5 @@ def handle_text(message):
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+
 
