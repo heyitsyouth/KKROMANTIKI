@@ -3,7 +3,7 @@ import os
 import telebot
 
 # ---------- Конфигурация ----------
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = "BOT_TOKEN"
 JSON_FILE = "klubklubromance.json"
 ACHIEVEMENTS_FILE = "achievements.json"
 
@@ -119,8 +119,20 @@ def get_user_data(user_id):
     data = load_achievements()
     uid = str(user_id)
     if uid not in data:
-        data[uid] = {"completed_endings": [], "achievements": []}
+        data[uid] = {
+            "completed_endings": [],
+            "achievements": [],
+            "username": "",
+            "first_name": ""
+        }
     return data, uid
+
+def update_user_info(user_id, username, first_name):
+    """Обновляет информацию о пользователе в achievements."""
+    data, uid = get_user_data(user_id)
+    data[uid]["username"] = username
+    data[uid]["first_name"] = first_name
+    save_achievements(data)
 
 def add_ending(user_id, ending_id):
     data, uid = get_user_data(user_id)
@@ -228,7 +240,7 @@ def check_secret_name(name):
 # ---------- Хранилище сессий ----------
 user_sessions = {}
 
-def init_session(chat_id, name):
+def init_session(chat_id, name, username, first_name):
     user_sessions[chat_id] = {
         'current_id': START_NODE,
         'history': [],
@@ -237,6 +249,8 @@ def init_session(chat_id, name):
         'character': None,
         'inventory': {'money': 1000, 'cigarette': True, 'mediator': True, 'camera': True},
         'player_name': name,
+        'tg_username': username,
+        'tg_first_name': first_name,
         'current_edges': {},
         'visited': set()
     }
@@ -274,20 +288,47 @@ def handle_inventory(chat_id, edge_text):
                 bot.send_message(chat_id, f"💰 Вы потратили 1300 руб. Осталось: {inv['money']} руб.")
     return True
 
-# ---------- Главное меню с кнопками-ссылками ----------
+# ---------- Главное меню ----------
 def main_menu(chat_id):
     markup = telebot.types.InlineKeyboardMarkup(row_width=2)
     btn1 = telebot.types.InlineKeyboardButton("🎮 Новая игра", callback_data="new_game")
     btn2 = telebot.types.InlineKeyboardButton("📊 Статистика", callback_data="stats")
     btn3 = telebot.types.InlineKeyboardButton("🏆 Достижения", callback_data="achievements")
     btn4 = telebot.types.InlineKeyboardButton("❓ Помощь", callback_data="help")
-    btn5 = telebot.types.InlineKeyboardButton("👀 тгк ванька", url="https://t.me/sundaysunrisee")
-    btn6 = telebot.types.InlineKeyboardButton("🍓 тгк алисы", url="https://t.me/fullasskingdom")
+    btn5 = telebot.types.InlineKeyboardButton("💸 Донат", url="")
+    btn6 = telebot.types.InlineKeyboardButton("📋 Лидеры", callback_data="leaderboard")
     markup.add(btn1, btn2, btn3, btn4)
     markup.add(btn5, btn6)
     bot.send_message(chat_id, "🏠 **Главное меню**\nВыберите действие:", parse_mode="Markdown", reply_markup=markup)
 
-# ---------- Отправка узла (без сохранения файла) ----------
+# ---------- Лидерборд ----------
+@bot.message_handler(commands=['leaderboard'])
+def leaderboard_cmd(message):
+    data = load_achievements()
+    users = []
+    for uid, info in data.items():
+        count = len(info.get("completed_endings", []))
+        if count > 0:
+            username = info.get("username", "")
+            first_name = info.get("first_name", "")
+            users.append((uid, count, username, first_name))
+    users.sort(key=lambda x: x[1], reverse=True)
+    top = users[:10]
+    if not top:
+        bot.send_message(message.chat.id, "Пока нет игроков в таблице лидеров.")
+        return
+    text = "🏆 **Топ игроков по количеству пройденных концовок** 🏆\n\n"
+    for i, (uid, count, username, first_name) in enumerate(top, 1):
+        if username:
+            display_name = f"@{username}"
+        elif first_name:
+            display_name = first_name
+        else:
+            display_name = f"ID {uid}"
+        text += f"{i}. {display_name} — {count}\n"
+    bot.send_message(message.chat.id, text, parse_mode="Markdown")
+
+# ---------- Отправка узла ----------
 def send_node(chat_id):
     session = user_sessions.get(chat_id)
     if not session:
@@ -333,7 +374,7 @@ def send_node(chat_id):
         # Конец игры
         bot.send_message(chat_id, text, reply_markup=telebot.types.ReplyKeyboardRemove())
 
-        # Определяем ID концовки
+        # ID концовки
         if session['character'] == 'alice':
             ending_id = "alice_pos" if session['pos_count'] >= 3 else "alice_neg"
         elif session['character'] == 'vanya':
@@ -341,7 +382,10 @@ def send_node(chat_id):
         else:
             ending_id = "unknown"
 
-        # Сохраняем в достижения
+        # Сохраняем информацию о пользователе для лидерборда
+        update_user_info(chat_id, session.get('tg_username', ''), session.get('tg_first_name', ''))
+
+        # Достижения
         if add_ending(chat_id, ending_id):
             new_achs = check_achievements(chat_id)
             if new_achs:
@@ -351,7 +395,7 @@ def send_node(chat_id):
         global_ending = get_global_ending(session['character'], session['pos_count'])
         bot.send_message(chat_id, global_ending)
 
-        # Отправляем краткую сводку (вместо файла)
+        # Краткая сводка
         summary = f"📋 **Сводка игры**\n"
         summary += f"Персонаж: {'Алиса' if session['character']=='alice' else 'Ваня'}\n"
         summary += f"Позитивных выборов: {session['pos_count']}\n"
@@ -390,7 +434,7 @@ def achievements_cmd(message):
     bot.send_message(chat_id, text, parse_mode="Markdown")
 
 # ---------- Админская команда ----------
-ADMIN_IDS = [513528979, 411500197]  # замените на свой ID
+ADMIN_IDS = [411500197, 513528979]  # замените на свой ID
 
 def get_admin_stats():
     data = load_achievements()
@@ -467,6 +511,7 @@ def callback_inline(call):
 /start — главное меню
 /menu — вернуться в меню (во время игры)
 /achievements — посмотреть достижения и статистику
+/leaderboard — топ игроков по числу концовок
 
 ЕБАШИМ
 """
@@ -494,7 +539,9 @@ def handle_text(message):
 
     if session.get('waiting_name'):
         name = text
-        init_session(chat_id, name)
+        username = message.from_user.username or ""
+        first_name = message.from_user.first_name or ""
+        init_session(chat_id, name, username, first_name)
         bot.send_message(chat_id, f"Приятно познакомиться, {name}! Начинаем...")
         send_node(chat_id)
         return
