@@ -5,7 +5,11 @@ import telebot
 # ---------- Конфигурация ----------
 TOKEN = os.getenv("BOT_TOKEN")
 JSON_FILE = "klubklubromance.json"
-ACHIEVEMENTS_FILE = "achievements.json"
+# ---------- Папка для постоянных данных ----------
+DATA_DIR = "data"
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
+ACHIEVEMENTS_FILE = os.path.join(DATA_DIR, "achievements.json")
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -617,6 +621,7 @@ def handle_text(message):
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+
 
 
 
