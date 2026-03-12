@@ -299,7 +299,7 @@ def main_menu(chat_id):
     btn2 = telebot.types.InlineKeyboardButton("📊 Статистика", callback_data="stats")
     btn3 = telebot.types.InlineKeyboardButton("🏆 Достижения", callback_data="achievements")
     btn4 = telebot.types.InlineKeyboardButton("❓ Помощь", callback_data="help")
-    btn5 = telebot.types.InlineKeyboardButton("💸 Донат на развитие", url="https://tips.yandex.ru/guest/payment/7139760")
+    btn5 = telebot.types.InlineKeyboardButton("💸 Донат", url="https://tips.yandex.ru/guest/payment/7139760")
     btn6 = telebot.types.InlineKeyboardButton("📋 Лидеры", callback_data="leaderboard")
     markup.add(btn1, btn2, btn3, btn4)
     markup.add(btn5, btn6)
@@ -331,6 +331,9 @@ def leaderboard_cmd(message):
             display_name = f"ID {uid}"
         text += f"{i}. {display_name} — {count}\n"
     bot.send_message(message.chat.id, text, parse_mode="Markdown")
+    markup = telebot.types.InlineKeyboardMarkup()
+    markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
+    bot.send_message(message.chat.id, "Вернуться в меню:", reply_markup=markup)
 
 # ---------- Отправка узла ----------
 def send_node(chat_id):
@@ -549,6 +552,9 @@ def callback_inline(call):
                 display_name = f"ID {uid}"
             text += f"{i}. {display_name} — {count}\n"
         bot.send_message(chat_id, text, parse_mode="Markdown")
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
+        bot.send_message(chat_id, "Вернуться в меню:", reply_markup=markup)
 
     elif call.data == "back_to_menu":
         bot.answer_callback_query(call.id)
@@ -621,6 +627,7 @@ def handle_text(message):
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+
 
 
 
