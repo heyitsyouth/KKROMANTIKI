@@ -495,6 +495,33 @@ def callback_inline(call):
         markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
         bot.send_message(chat_id, "Вернуться в меню:", reply_markup=markup)
 
+    elif call.data == "leaderboard":
+    bot.answer_callback_query(call.id)
+    # Загружаем статистику
+    data = load_achievements()
+    users = []
+    for uid, info in data.items():
+        count = len(info.get("completed_endings", []))
+        if count > 0:
+            username = info.get("username", "")
+            first_name = info.get("first_name", "")
+            users.append((uid, count, username, first_name))
+    users.sort(key=lambda x: x[1], reverse=True)
+    top = users[:10]
+    if not top:
+        bot.send_message(chat_id, "Пока нет игроков в таблице лидеров.")
+        return
+    text = "🏆 **Топ игроков по количеству пройденных концовок** 🏆\n\n"
+    for i, (uid, count, username, first_name) in enumerate(top, 1):
+        if username:
+            display_name = f"@{username}"
+        elif first_name:
+            display_name = first_name
+        else:
+            display_name = f"ID {uid}"
+        text += f"{i}. {display_name} — {count}\n"
+    bot.send_message(chat_id, text, parse_mode="Markdown")
+
     elif call.data == "help":
         bot.answer_callback_query(call.id)
         help_text = """
@@ -591,6 +618,7 @@ def handle_text(message):
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+
 
 
 
