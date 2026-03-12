@@ -295,7 +295,7 @@ def main_menu(chat_id):
     btn2 = telebot.types.InlineKeyboardButton("📊 Статистика", callback_data="stats")
     btn3 = telebot.types.InlineKeyboardButton("🏆 Достижения", callback_data="achievements")
     btn4 = telebot.types.InlineKeyboardButton("❓ Помощь", callback_data="help")
-    btn5 = telebot.types.InlineKeyboardButton("💸 Донат", url="")
+    btn5 = telebot.types.InlineKeyboardButton("💸 Донат", url="https://tips.yandex.ru/guest/payment/7139760")
     btn6 = telebot.types.InlineKeyboardButton("📋 Лидеры", callback_data="leaderboard")
     markup.add(btn1, btn2, btn3, btn4)
     markup.add(btn5, btn6)
@@ -591,3 +591,4 @@ def handle_text(message):
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+
