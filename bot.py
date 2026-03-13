@@ -12,7 +12,29 @@ if not os.path.exists(DATA_DIR):
 ACHIEVEMENTS_FILE = os.path.join(DATA_DIR, "achievements.json")
 
 bot = telebot.TeleBot(TOKEN)
+# ---------- Достижения за концовки ----------
+SPECIAL_ENDING_ACHIEVEMENTS = {
+    "17:1182": "💋 Прыткий язычок",      # узел, где оформлено пососалово с Алисой
+    "36:515": "🏡 Джага Джага с Ваньком",          # например, Ваня едет домой к герою
+    "36:512": "🚖 Такси до Жуковского",
+    "14:786": "😮 Охота на микро-фембоев" # концовка, где сосут илью 
 
+    "39:1386": "💋 Пососалово с Алисой",
+    "42:1951": "💋 Пососалово с Алисой",
+    
+    # харассмент
+    "17:335": "🫣 Попытка харассмента",
+    "39:1317": "🫣 Попытка харассмента",
+    "39:1315": "🫣 Получил отлуп",
+    "17:759": "😭 Слезная драма",
+    # и другие
+    # отдача медиатора
+    "14:497": "🎸 ОООО спесик за медиатор",
+    "14:483": "🎸  ОООО спесик за медиатор",
+    "29:546": "🎸  ОООО спесик за медиатор",
+    "37:2378": "🎸  ОООО спесик за медиатор",
+    # Добавьте сюда другие нужные ID и названия
+}
 # ---------- Загрузка сюжета ----------
 def resolve_ref(ref, root):
     if not ref.startswith("#/"):
@@ -181,6 +203,22 @@ def check_achievements(user_id):
     if new:
         save_achievements(data)
     return new
+    
+def add_special_achievement(user_id, node_id):
+    """
+    Добавляет достижение, соответствующее конкретному ID узла,
+    если оно ещё не получено.
+    Возвращает название достижения или None.
+    """
+    if node_id not in SPECIAL_ENDING_ACHIEVEMENTS:
+        return None
+    achievement_name = SPECIAL_ENDING_ACHIEVEMENTS[node_id]
+    data, uid = get_user_data(user_id)
+    if achievement_name not in data[uid]["achievements"]:
+        data[uid]["achievements"].append(achievement_name)
+        save_achievements(data)
+        return achievement_name
+    return None
 
 def get_detailed_stats(user_id):
     data, uid = get_user_data(user_id)
@@ -397,6 +435,10 @@ def send_node(chat_id):
             new_achs = check_achievements(chat_id)
             if new_achs:
                 bot.send_message(chat_id, "🏆 Новые достижения:\n" + "\n".join(f"• {a}" for a in new_achs))
+        # Проверка на специальные концовки по ID узла
+        special_ach = add_special_achievement(chat_id, current_id)
+        if special_ach:
+            bot.send_message(chat_id, f"🏆 Новое достижение: {special_ach}")
 
         # Глобальная концовка
         global_ending = get_global_ending(session['character'], session['pos_count'])
@@ -627,6 +669,7 @@ def handle_text(message):
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+
 
 
 
