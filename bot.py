@@ -303,7 +303,7 @@ def main_menu(chat_id):
     btn6 = telebot.types.InlineKeyboardButton("📋 Лидеры", callback_data="leaderboard")
     markup.add(btn1, btn2, btn3, btn4)
     markup.add(btn5, btn6)
-    bot.send_message(chat_id, "🏠 **Главное меню**\nВыберите действие:", parse_mode="Markdown", reply_markup=markup)
+    bot.send_message(chat_id, "🏠 **Главное меню**\nВыберите действие:", parse_mode=None, reply_markup=markup)
 
 # ---------- Лидерборд ----------
 @bot.message_handler(commands=['leaderboard'])
@@ -330,7 +330,7 @@ def leaderboard_cmd(message):
         else:
             display_name = f"ID {uid}"
         text += f"{i}. {display_name} — {count}\n"
-    bot.send_message(message.chat.id, text, parse_mode="Markdown")
+    bot.send_message(message.chat.id, text, parse_mode=None)
     markup = telebot.types.InlineKeyboardMarkup()
     markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
     bot.send_message(message.chat.id, "Вернуться в меню:", reply_markup=markup)
@@ -407,7 +407,7 @@ def send_node(chat_id):
         summary += f"Персонаж: {'Алиса' if session['character']=='alice' else 'Ваня'}\n"
         summary += f"Позитивных выборов: {session['pos_count']}\n"
         summary += f"Негативных выборов: {session['neg_count']}\n"
-        bot.send_message(chat_id, summary, parse_mode="Markdown")
+        bot.send_message(chat_id, summary, parse_mode=None)
 
         clear_session(chat_id)
         main_menu(chat_id)
@@ -438,7 +438,7 @@ def achievements_cmd(message):
         text += "🏅 **Достижения:**\n" + "\n".join(f"• {a}" for a in stats['achievements'])
     else:
         text += "Пока нет достижений. Играйте!"
-    bot.send_message(chat_id, text, parse_mode="Markdown")
+    bot.send_message(chat_id, text, parse_mode=None)
 
 # ---------- Админская команда ----------
 ADMIN_IDS = [411500197, 513528979]  # замените на свой ID
@@ -485,7 +485,7 @@ def callback_inline(call):
         text += f"Алиса: побед {stats['alice_wins']}, поражений {stats['alice_losses']}\n"
         text += f"Ваня: побед {stats['vanya_wins']}, поражений {stats['vanya_losses']}\n"
         text += f"Секретных концовок: {stats['secret']}"
-        bot.edit_message_text(text, chat_id, message_id, parse_mode="Markdown")
+        bot.edit_message_text(text, chat_id, message_id, parse_mode=None)
         markup = telebot.types.InlineKeyboardMarkup()
         markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
         bot.send_message(chat_id, "Вернуться в меню:", reply_markup=markup)
@@ -497,7 +497,7 @@ def callback_inline(call):
             text = "🏅 **Ваши достижения:**\n" + "\n".join(f"• {a}" for a in stats['achievements'])
         else:
             text = "У вас пока нет достижений. Играйте и открывайте их!"
-        bot.edit_message_text(text, chat_id, message_id, parse_mode="Markdown")
+        bot.edit_message_text(text, chat_id, message_id, parse_mode=None)
         markup = telebot.types.InlineKeyboardMarkup()
         markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
         bot.send_message(chat_id, "Вернуться в меню:", reply_markup=markup)
@@ -522,7 +522,7 @@ def callback_inline(call):
 
 ЕБАШИМ
 """
-        bot.edit_message_text(help_text, chat_id, message_id, parse_mode="Markdown")
+        bot.edit_message_text(help_text, chat_id, message_id, parse_mode=None)
         markup = telebot.types.InlineKeyboardMarkup()
         markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
         bot.send_message(chat_id, "Вернуться в меню:", reply_markup=markup)
@@ -551,7 +551,7 @@ def callback_inline(call):
             else:
                 display_name = f"ID {uid}"
             text += f"{i}. {display_name} — {count}\n"
-        bot.send_message(chat_id, text, parse_mode="Markdown")
+        bot.send_message(chat_id, text, parse_mode=None)
         markup = telebot.types.InlineKeyboardMarkup()
         markup.add(telebot.types.InlineKeyboardButton("🔙 Назад", callback_data="back_to_menu"))
         bot.send_message(chat_id, "Вернуться в меню:", reply_markup=markup)
@@ -627,6 +627,7 @@ def handle_text(message):
 if __name__ == "__main__":
     print("Бот запущен...")
     bot.infinity_polling()
+
 
 
 
